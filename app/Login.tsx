@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { sendEmailVerification, signInWithEmailAndPassword } from "firebase/auth";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
@@ -18,6 +18,11 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const clearInputs = () => {
+    setEmail("");
+    setPassword("");
+  };
+
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert("Error", "Please enter both email and password");
@@ -26,9 +31,52 @@ const Login: React.FC = () => {
 
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.replace("/dashboard");
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      console.log("✅ User signed in:", userCredential.user.uid);
+      
+      // Check if email is verified
+      if (!userCredential.user.emailVerified) {
+        console.log("⚠️ Email not verified");
+        
+        Alert.alert(
+          "Email Not Verified",
+          "Please verify your email before logging in. Check your inbox for the verification link.",
+          [
+            {
+              text: "Resend Email",
+              onPress: async () => {
+                try {
+                  await sendEmailVerification(userCredential.user);
+                  console.log("✅ Verification email resent");
+                  Alert.alert("Success", "Verification email sent! Please check your inbox.");
+                } catch (error) {
+                  console.log("❌ Resend verification error:", error);
+                  Alert.alert("Error", "Failed to send verification email. Please try again.");
+                }
+              },
+            },
+            {
+              text: "OK",
+              style: "cancel",
+            },
+          ]
+        );
+        
+        // Sign out the user since they're not verified
+        await auth.signOut();
+        setLoading(false);
+        return;
+      }
+
+      console.log("✅ Email verified, redirecting to dashboard");
+      clearInputs();
+      setLoading(false);
+      router.replace("./dashboard");
+      
     } catch (error: any) {
+      console.log("❌ Login error:", error);
+      setLoading(false);
+      
       let errorMessage = "Login failed. Please try again.";
       
       if (error.code === "auth/invalid-credential") {
@@ -37,17 +85,17 @@ const Login: React.FC = () => {
         errorMessage = "No account found with this email.";
       } else if (error.code === "auth/wrong-password") {
         errorMessage = "Incorrect password.";
+      } else if (error.code === "auth/invalid-email") {
+        errorMessage = "Invalid email address format.";
+      } else if (error.code === "auth/user-disabled") {
+        errorMessage = "This account has been disabled.";
       } else if (error.code === "auth/too-many-requests") {
         errorMessage = "Too many failed attempts. Please try again later.";
       } else if (error.code === "auth/network-request-failed") {
         errorMessage = "Network error. Please check your internet connection.";
-      } else if (error.message) {
-        errorMessage = error.message;
       }
       
       Alert.alert("Login Failed", errorMessage);
-    } finally {
-      setLoading(false);
     }
   };
 

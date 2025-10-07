@@ -2,13 +2,13 @@ import { useRouter } from "expo-router";
 import { sendPasswordResetEmail } from "firebase/auth";
 import React, { useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { auth } from "../FirebaseConfig";
 
@@ -33,8 +33,16 @@ const ResetPassword: React.FC = () => {
     setLoading(true);
     try {
       await sendPasswordResetEmail(auth, email);
+      console.log("✅ Password reset email sent to:", email);
+      
+      // Clear email input
+      setEmail("");
+      
+      // Stop loading
+      setLoading(false);
+      
       Alert.alert(
-        "Success",
+        "Success 🎉",
         "Password reset email sent! Please check your inbox and follow the instructions to reset your password.",
         [
           {
@@ -43,8 +51,11 @@ const ResetPassword: React.FC = () => {
           },
         ]
       );
-      setEmail("");
+      
     } catch (error: any) {
+      console.log("❌ Reset password error:", error);
+      setLoading(false);
+      
       let errorMessage = "Failed to send reset email. Please try again.";
 
       if (error.code === "auth/user-not-found") {
@@ -55,13 +66,9 @@ const ResetPassword: React.FC = () => {
         errorMessage = "Too many requests. Please try again later.";
       } else if (error.code === "auth/network-request-failed") {
         errorMessage = "Network error. Please check your internet connection.";
-      } else if (error.message) {
-        errorMessage = error.message;
       }
 
       Alert.alert("Reset Failed", errorMessage);
-    } finally {
-      setLoading(false);
     }
   };
 

@@ -1,16 +1,15 @@
-// Import the functions you need
+// FirebaseConfig.js
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
-// Your Firebase credentials (replace with your own from Firebase Console)
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "your-app.firebaseapp.com",
-  projectId: "your-app",
-  storageBucket: "your-app.appspot.com",
-  messagingSenderId: "1234567890",
-  appId: "1:1234567890:web:xxxxxxxxxxxxxx",
+  apiKey: "AIzaSyD4Ov0zCYm4Qo5CS3yJPEDnGzfIZk2fcAM",
+  authDomain: "smart-study-43b26.firebaseapp.com",
+  projectId: "smart-study-43b26",
+  storageBucket: "smart-study-43b26.appspot.com", // ✅ fixed here
+  messagingSenderId: "463495526735",
+  appId: "1:463495526735:web:a199c21a789bbef04aad3a",
 };
 
 // Initialize Firebase
